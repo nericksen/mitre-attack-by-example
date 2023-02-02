@@ -126,3 +126,8 @@ Now whenever the Vicitim `cat`s a file the content will be displayed to there te
 * Threat hunt for any activity
 * Block malicious domains and urls on the firewall
 
+[] Show XQL for finding this activity
+[] Create BIOC and correlation rule in XDR/XSIAM
+[] Automation Remediation Playbook
+[] Blocking on EDL/within XDR
+[] Enriching/Tracking in XSIAM/XSOAR TIM
